@@ -66,6 +66,13 @@ export const StableScrolling: Story = {
       0,
     )
     await expect(list.getBoundingClientRect().top).toBeCloseTo(before.top, 0)
+    // Opening the popup schedules focus separately from layout. Wait for keyboard
+    // ownership just as the reopen assertion below does, before sending keys.
+    await waitFor(() =>
+      expect(list.contains(canvasElement.ownerDocument.activeElement)).toBe(
+        true,
+      )
+    )
     // Keyboard navigation must still reach an offscreen option and restore focus.
     await userEvent.keyboard('{End}{Enter}')
     await expect(trigger).toHaveTextContent('模型 24')

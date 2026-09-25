@@ -130,6 +130,9 @@ async function fixtures(page: Page, options: FixtureOptions = {}) {
         side: path.includes('/102/') ? 'b' : 'a',
       })
     }
+    if (/^\/agents\/\d+\/matches$/.test(path) && request.method() === 'GET') {
+      return json({ matches: [], open: false })
+    }
     if (/^\/agents\/\d+\/versions$/.test(path)) {
       return json({ versions, entryVersionID: 1002 })
     }

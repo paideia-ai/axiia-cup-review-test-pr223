@@ -27,6 +27,7 @@ interface VersionListProps {
   headingAside?: ReactNode
   headingAction?: ReactNode
   emptyState?: ReactNode
+  selectedVersionID?: number | null
   detailsMissing?: (versionID: number) => boolean
 }
 
@@ -42,6 +43,7 @@ export function VersionList({
   headingAction,
   emptyState,
   detailsMissing,
+  selectedVersionID,
 }: VersionListProps) {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({})
   const [overflows, setOverflows] = useState<Record<number, boolean>>({})
@@ -102,6 +104,11 @@ export function VersionList({
   }, [copied])
 
   const sorted = [...versions].sort((a, b) => b.id - a.id)
+  const displayed = selectedVersionID == null
+    ? sorted
+    : [...sorted].sort((a, b) =>
+      Number(b.id === selectedVersionID) - Number(a.id === selectedVersionID)
+    )
 
   const copyPrompt = async (version: AgentVersionDTO) => {
     setCopied(null)
@@ -154,14 +161,14 @@ export function VersionList({
             </p>
           </div>
         )
-        : sorted.map((version) => {
+        : displayed.map((version) => {
           const unavailable = detailsMissing?.(version.id) && !version.prompt
           const tag = versionTag(version, sorted)
           return (
             <Card
               key={version.id}
               data-testid='version-card'
-              className={version.isEntry
+              className={version.id === selectedVersionID || version.isEntry
                 ? 'border-[rgba(224,74,47,0.48)] shadow-none'
                 : 'shadow-none'}
               {...tm('E.version-card')}
@@ -175,6 +182,9 @@ export function VersionList({
                     >
                       {tag}
                     </span>
+                    {version.id === selectedVersionID && (
+                      <Badge tone='info'>正在查看</Badge>
+                    )}
                     {!detailsMissing?.(version.id)
                       ? (
                         <>

@@ -27,6 +27,7 @@ import { AgentEntryPage } from './pages/agent-entry'
 import { BuilderPage } from './pages/builder'
 import { CatalogPage } from './pages/catalog'
 import { ExpressPage } from './pages/express'
+import { NPCViewPage } from './pages/npc-view'
 import { MyAgentsPage } from './pages/my-agents'
 import { LandingPage } from './pages/landing'
 import { LoginPage } from './pages/login'
@@ -149,6 +150,10 @@ export function AppRoutes() {
               element={<ScenarioBuildEntry />}
             />
             <Route path='/my-agents' element={<MyAgentsPage />} />
+            <Route
+              path='/scenarios/:scenarioId/npcs/:presetKey'
+              element={<NPCViewPage />}
+            />
             <Route path='/agents/entry' element={<AgentEntryPage />} />
             <Route path='/agents/:agentId' element={<AgentViewPage />} />
             <Route path='/agents/:agentId/build' element={<BuilderRoute />} />

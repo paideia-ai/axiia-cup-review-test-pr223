@@ -265,9 +265,16 @@ export const B3_A5_JOURNEYS: Journey[] = [
         testUrl: '{{appBaseUrl}}/agents/{{b3OwnerAgentId}}',
         fixtureRefs: ['b3-owner-rich'],
         route: '/agents/:id',
-        marker: 'EA.diff-section',
+        marker: 'EA.page-header',
+        knownGap: {
+          title: '版本对比暂不提供，修订提案待审阅',
+          detail:
+            '2026-09-18 产品要求暂不做版本 diff；此处保留原条款与版本 pin，不代表当前实现仍提供对比。',
+          instruction:
+            '核对主页不显示版本对比，记录与历史规范的差异，不把旧条款标为通过。',
+        },
         action:
-          '展开「版本对比」，分别选择 v1 为基准版本、v2 为对比版本，等待差异自动刷新并展开两侧全文。',
+          '打开主页，核对当前版本战绩与提示词；版本 diff 已按 2026-09-18 要求暂时移除，原验收预期保留待审阅。',
         expected:
           '所有者能看到完整提示词和版本差异；基准、对比选择器都可用，结果对应所选两个版本。',
         clauseIds: ['U10-C04'],
@@ -450,16 +457,16 @@ export const B3_A5_JOURNEYS: Journey[] = [
         testUrl: '{{appBaseUrl}}/scenarios/shangyang-court',
         fixtureRefs: ['b3-public-viewer', 'b3-npc-gap'],
         knownGap: {
-          title: 'NPC 预设详情已移除；原聚合视图条款待更新',
+          title: 'NPC 单侧主页已实现；原双侧统计条款待审阅',
           detail:
-            'NPC 预设详情页、场景页列表及出战面板查看入口已按产品要求移除。原条款的两侧胜率尚待正式口径裁决与实现；该历史条款不再对应当前产品入口。',
+            '2026-09-18 要求恢复 NPC 单侧主页，展示当前配置胜率与公开提示词。当前实现与原双侧统计条款不一致，修订提案待审阅；原条款版本 pin 不自动改写。',
           instruction:
-            '记录 NPC 详情功能已移除，原条款待更新，结果选「有问题」，不标整条通过。保留原预期与版本 pin；不要拼造 ID。',
+            '从场景页实际 NPC 链接打开主页，核对单侧胜率、提示词与底部记录。记录与历史双侧条款的差异，不标原条款通过；不要拼造 ID。',
         },
         route: '/scenarios/:id',
         marker: 'DA.page',
         action:
-          '打开场景详情页，记录 NPC 预设列表与详情入口已移除。原两侧胜率预期保留为历史条款，记录待更新，不再寻找或拼造 NPC 详情网址。',
+          '从场景详情页的官方 NPC 入口打开主页。确认只展示该 NPC 所属单侧的战绩；原双侧胜率预期保留为历史条款待审阅。',
         expected:
           '每个 PVE NPC 都有可查看的聚合视图；目标 NPC 在当前场景分别展示两个阵营胜率，数值与种子数据一致，不显示成玩家胜率。',
         clauseIds: ['U10-C14'],

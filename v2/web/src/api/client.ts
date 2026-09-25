@@ -28,6 +28,7 @@ import type {
   ModelListResponse,
   MyAgentsResponse,
   NotificationsResponse,
+  NPCProfileResponse,
   OKResponse,
   OpponentListResponse,
   PhoneCodeSentResponse,
@@ -262,6 +263,13 @@ export const myAgents = {
 // ── Agents（多槽位，#56/#84） ────────────────────────────────────────────────
 
 export const agents = {
+  history: (agentID: number, versionID: number, before?: number) =>
+    request<MatchListResponse>(
+      'GET',
+      `/agents/${agentID}/matches?versionID=${versionID}&limit=20${
+        before == null ? '' : `&before=${before}`
+      }`,
+    ),
   archive: (agentID: number) =>
     request<OKResponse>('PUT', `/agents/${agentID}/archive`),
   restore: (agentID: number) =>
@@ -277,6 +285,23 @@ export const agents = {
   // 就地降级文案、按钮保留。
   create: (input: CreateAgentRequest) =>
     request<AgentRefResponse>('POST', '/agents', input),
+}
+
+export const npcs = {
+  profile: (scenarioID: string, key: string) =>
+    request<NPCProfileResponse>(
+      'GET',
+      `/scenarios/${encodeURIComponent(scenarioID)}/npcs/${
+        encodeURIComponent(key)
+      }`,
+    ),
+  history: (scenarioID: string, key: string, before?: number) =>
+    request<MatchListResponse>(
+      'GET',
+      `/scenarios/${encodeURIComponent(scenarioID)}/npcs/${
+        encodeURIComponent(key)
+      }/matches?limit=20${before == null ? '' : `&before=${before}`}`,
+    ),
 }
 
 // ── Builder ─────────────────────────────────────────────────────────────────

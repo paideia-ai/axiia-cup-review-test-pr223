@@ -171,6 +171,32 @@ export function ScenarioDetailPage() {
               </div>
             </section>
 
+            {data.presets.length > 0 && (
+              <section aria-label='官方 NPC' className='space-y-3'>
+                <h2 className='text-lg font-bold text-(--foreground)'>
+                  官方 NPC
+                </h2>
+                <p className='text-sm text-(--foreground-subtle)'>
+                  查看对手的策略、当前版本胜率与对战记录。
+                </p>
+                <div className='flex flex-wrap gap-2'>
+                  {data.presets.map((preset) => (
+                    <Link
+                      key={preset.key}
+                      to={`/scenarios/${encodeURIComponent(scenarioId)}/npcs/${
+                        encodeURIComponent(preset.key)
+                      }`}
+                      className='inline-flex min-h-11 items-center rounded-lg border border-(--border) px-4 py-2 text-sm text-(--foreground-subtle) transition hover:border-(--foreground-muted) hover:text-(--foreground)'
+                    >
+                      {preset.side === 'a'
+                        ? data.summary.sideAName
+                        : data.summary.sideBName}「{preset.label}」
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <JudgeScoringCard
               intro={intro}
               education={education}

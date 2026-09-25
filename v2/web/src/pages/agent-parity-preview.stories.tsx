@@ -70,7 +70,7 @@ function Pages() {
       <div className='flex flex-wrap items-center gap-4 border-b border-(--border-soft) pb-4 text-sm'>
         <span className='text-(--foreground-muted)'>交互预览 · 示例数据</span>
         <Link to='/my-agents'>我的智能体</Link>
-        <Link to='/agents/101'>版本对比</Link>
+        <Link to='/agents/101'>智能体主页</Link>
         <Link to='/agents/201/build'>本能寺构建器</Link>
       </div>
       <Routes>

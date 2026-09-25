@@ -541,6 +541,17 @@ export function OsPanel({
                             ))}
                           </Select>
                         </div>
+                        {presetKey && (
+                          <Link
+                            to={`/scenarios/${
+                              encodeURIComponent(scenario.summary.id)
+                            }/npcs/${encodeURIComponent(presetKey)}`}
+                            onClick={onClose}
+                            className='block w-fit py-2 text-sm text-(--foreground-subtle) underline underline-offset-4'
+                          >
+                            查看这个 NPC 的主页
+                          </Link>
+                        )}
                         <Button
                           data-testid='dispatch-match'
                           onClick={() => void dispatchPVE()}

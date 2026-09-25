@@ -215,7 +215,7 @@ describe('B3 / A5 固定版本人测交接', () => {
     ])
 
     const npcStep = steps['HV-B3-PUBLIC-NPC-S02']
-    expect(npcStep.knownGap?.detail).toContain('两侧胜率尚待正式口径裁决与实现')
+    expect(npcStep.knownGap?.detail).toContain('修订提案待审阅')
     expect(npcStep.marker).toBe('DA.page')
     expect(npcStep.expected).toContain('分别展示两个阵营胜率')
     expect(npcStep.knownGap?.instruction).toContain('不要拼造 ID')

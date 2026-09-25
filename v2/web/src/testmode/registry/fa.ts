@@ -427,7 +427,7 @@ export const TM_FA: TmRegistry = {
     label: '文本工作台提示',
     clauses: ['U01-C09', 'U02-C19', 'U03-C13'],
     note:
-      '两个辅助入口常驻；版本管理、版本对比、参赛选择和出战集中在智能体主页',
+      '两个辅助入口常驻；版本管理、参赛选择和出战集中在智能体主页；版本对比暂不展示',
   },
   'FA.journey-build-link': {
     label: '继续写策略',

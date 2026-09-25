@@ -11,8 +11,22 @@ import {
 
 const now = Math.floor(Date.now() / 1000)
 export const historyVersions = [
-  { ...versions[0], matchCount: 1, winCount: 0, createdAt: now - 23 * 86400 },
-  { ...versions[1], matchCount: 2, winCount: 1, createdAt: now - 2 * 86400 },
+  {
+    ...versions[0],
+    matchCount: 1,
+    winCount: 0,
+    lossCount: 1,
+    drawCount: 0,
+    createdAt: now - 23 * 86400,
+  },
+  {
+    ...versions[1],
+    matchCount: 2,
+    winCount: 1,
+    lossCount: 1,
+    drawCount: 0,
+    createdAt: now - 2 * 86400,
+  },
   {
     ...versions[1],
     id: 1003,
@@ -20,6 +34,8 @@ export const historyVersions = [
     isEntry: false,
     matchCount: 0,
     winCount: 0,
+    lossCount: 0,
+    drawCount: 0,
     createdAt: now - 3600,
   },
 ]
@@ -67,6 +83,17 @@ export const versionHistory: MatchSummary[] = [
 ]
 
 export const versionHistoryHandlers = [
+  http.get('/v1/agents/101/matches', ({ request }) => {
+    const versionID = Number(new URL(request.url).searchParams.get('versionID'))
+    return HttpResponse.json({
+      matches: versionHistory.filter((match) =>
+        Object.values(match.participants ?? {}).some((participant) =>
+          participant.versionID === versionID
+        )
+      ).sort((a, b) => b.id - a.id),
+      open: true,
+    })
+  }),
   http.get(
     '/v1/matches',
     () => HttpResponse.json({ matches: versionHistory, open: true }),

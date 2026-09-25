@@ -370,6 +370,8 @@ export interface AgentVersionDTO {
   // P15（B3 承诺过）：该版本自己的战绩——玩家据此决定 ★ 给哪一版。
   matchCount?: number
   winCount?: number
+  drawCount?: number
+  lossCount?: number
 }
 
 export interface DraftResponse {
@@ -710,6 +712,26 @@ export interface PublicAgentVersionDTO {
   createdAt: number
   matchCount: number
   winCount: number
+  drawCount?: number
+  lossCount?: number
+  modelID?: string
+}
+
+export interface NPCProfileResponse {
+  scenarioID: string
+  scenarioTitle: string
+  key: string
+  side: Side
+  sideName: string
+  label: string
+  modelID: string
+  prompt: string
+  versionTag: string
+  matchCount: number
+  winCount: number
+  drawCount: number
+  lossCount: number
+  challengeCount: number
 }
 
 export interface PublicAgentResponse {

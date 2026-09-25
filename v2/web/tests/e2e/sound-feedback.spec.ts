@@ -147,6 +147,9 @@ async function installWorld(page: Page): Promise<SoundWorld> {
         side: 'a',
       })
     }
+    if (path === '/v1/agents/101/matches' && method === 'GET') {
+      return json({ matches: [], open: false })
+    }
     if (path === '/v1/agents/101/versions') {
       return json({
         versions: world.versions,

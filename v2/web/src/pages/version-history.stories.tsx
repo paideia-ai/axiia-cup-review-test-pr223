@@ -34,6 +34,21 @@ export const Preview: Story = {}
 export const FromVersionToReportAndBack: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
+    await userEvent.click(
+      await canvas.findByRole('combobox', { name: '查看版本' }),
+    )
+    await userEvent.click(
+      await within(document.body).findByRole('option', { name: 'v1' }),
+    )
+    await expect(canvas.getByRole('heading', { name: '历史版本 · v1' }))
+      .toBeVisible()
+    const selectedCard = canvas.getAllByTestId('version-card')[0]
+    await expect(within(selectedCard).getByText('正在查看')).toBeVisible()
+    await expect(
+      within(selectedCard).getByRole('link', {
+        name: '1 战 0 胜，查看 v1 的对局记录',
+      }),
+    ).toHaveAttribute('href', '/matches?version=1001')
     const view = await canvas.findByRole('link', {
       name: '1 战 0 胜，查看 v1 的对局记录',
     })
@@ -93,7 +108,7 @@ export const VersionWithoutGames: Story = {
     const canvas = within(canvasElement)
     await userEvent.click(
       await canvas.findByRole('link', {
-        name: '还没有出战过，查看 v3 的对局记录',
+        name: '暂无战绩，查看 v3 的对局记录',
       }),
     )
     await canvas.findByText('该版本还没有对战记录。')

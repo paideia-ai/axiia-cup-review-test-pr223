@@ -72,7 +72,7 @@ export const TM_AGENTS: TmRegistry = {
     clauses: ['U10-C05', 'U01-C32', 'U10-C12'],
     anchors: ['spec-p15', 'spec-change-35'],
     journeys: ['j8s1'],
-    note: '0 战「还没有出战过」；有战「N 战 M 胜」（按已计分对局）',
+    note: '0 战「暂无战绩」；有战「N 战 M 胜」（按已计分对局）',
     when: '公开视图且对方有版本',
   },
   'EA.public-owner-only-hint': {
@@ -80,7 +80,7 @@ export const TM_AGENTS: TmRegistry = {
     clauses: ['U10-C13', 'U10-C12', 'U10-C04'],
     anchors: ['spec-change-20'],
     journeys: ['j8s2'],
-    note: '「提示词与版本对比只有主人可见。」——#20 提示词与 diff 永不公开',
+    note: '「提示词只有智能体主人可见。」；版本对比暂不展示',
     when: '公开视图',
   },
 
@@ -221,67 +221,6 @@ export const TM_AGENTS: TmRegistry = {
     clauses: ['U10-C03'],
     when: '还没保存过版本时',
   },
-  'EA.diff-section': {
-    label: '版本对比区',
-    clauses: ['U10-C04', 'U10-C13', 'U01-C14'],
-    anchors: ['spec-change-20'],
-    journeys: ['j8s3'],
-    note: 'EA 独有（E 页没有）；所有者受限项——公开视图里整段不存在',
-  },
-  'EA.diff-hint': {
-    label: '对比引导',
-    clauses: ['U10-C04'],
-    anchors: ['spec-change-54'],
-    note: '#54 引导式空态：「再保存一个版本即可逐字对比」，不留空白',
-    when: '恰好只有 1 个版本时',
-  },
-  'EA.diff-base-select': {
-    label: '基准版本下拉',
-    clauses: ['U10-C04', 'U01-C20'],
-    note: '默认基准=次新版；选项口径「vN ★ · 模型」',
-    when: '≥2 个版本时',
-  },
-  'EA.diff-head-select': {
-    label: '对比版本下拉',
-    clauses: ['U10-C04'],
-    note: '默认对比=最新版；基准与对比相同时「对比」禁用',
-    when: '≥2 个版本时',
-  },
-  'EA.diff-button': {
-    label: '对比按钮',
-    clauses: ['U10-C04'],
-    when: '≥2 个版本时',
-  },
-  'EA.diff-error': {
-    label: '对比失败提示',
-    clauses: ['LACK-10'],
-    when: 'diff 请求失败时',
-  },
-  'EA.diff-result': {
-    label: '双栏对照结果',
-    clauses: ['U10-C04', 'U10-C13'],
-    anchors: ['spec-change-20'],
-    note: '基准 / 对比两栏全文，只有主人能看到',
-    when: '点过「对比」后',
-  },
-  'EA.diff-column': {
-    label: '对照栏',
-    clauses: ['U10-C04'],
-    when: '点过「对比」后',
-  },
-  'EA.diff-column-title': {
-    label: '对照栏标题',
-    clauses: ['U10-C04', 'U10-C07'],
-    note: '版本号、备注、模型显示名称分层呈现；模型名称缺失时回退 ID',
-    when: '点过「对比」后',
-  },
-  'EA.diff-prompt': {
-    label: '对照栏提示词全文',
-    clauses: ['U10-C04', 'U10-C13'],
-    anchors: ['spec-change-20'],
-    when: '点过「对比」后',
-  },
-
   // ======================= MA 我的智能体 =======================
   'MA.page-header': {
     label: '页头',

@@ -204,7 +204,7 @@ test('版本卡提供紧凑而完整的真实动作', async ({ page }) => {
       .toBeVisible()
     await expect(page.getByText(`#${versionA2}`, { exact: true }))
       .toBeVisible()
-    await expect(page.getByText('还没有出战过')).toHaveCount(2)
+    await expect(cards.getByText('暂无战绩')).toHaveCount(2)
   })
 
   await test.step('并且 每版提供复制、参赛选择和真实出战入口', async () => {
@@ -244,19 +244,13 @@ test('版本卡提供紧凑而完整的真实动作', async ({ page }) => {
   })
 })
 
-test('新版本、重命名、删除和版本对比集中在主页', async ({ page }) => {
+test('新版本、重命名和归档集中在主页，暂不展示版本对比', async ({ page }) => {
   await openOwner(page)
 
-  await test.step('当 所有者打开版本对比', async () => {
-    const section = page.getByRole('region', { name: '版本对比' })
-    await section.getByRole('button', { name: '版本对比' }).click()
-  })
-
-  await test.step('那么 最新两版自动对比，不需要单独的“对比”按钮', async () => {
-    await expect(page.locator('[data-tm="EA.diff-result"]'))
-      .toBeVisible({ timeout: 30_000 })
-    await expect(page.getByRole('button', { name: '对比', exact: true }))
-      .toHaveCount(0)
+  await test.step('那么 展示当前版本战绩且不提供版本对比', async () => {
+    await expect(page.getByRole('heading', { name: '当前版本 · v2' }))
+      .toBeVisible()
+    await expect(page.getByRole('button', { name: '版本对比' })).toHaveCount(0)
   })
 
   await test.step('当 所有者打开更多菜单', async () => {
@@ -299,7 +293,8 @@ test('公开投影保留战绩但绝不泄漏提示词与 diff', async ({ browse
     await expect(page.getByText(SCENARIO_TITLE)).toBeVisible()
     await expect(page.getByRole('heading', { name: '逐版本战绩' }))
       .toBeVisible()
-    await expect(page.getByText(/^v[12]/)).toHaveCount(2)
+    await expect(page.locator('[data-tm="EA.public-version-item"]'))
+      .toHaveCount(2)
   })
 
   await test.step('但是 所有者的提示词、复制、参赛、出战、重命名、新版本和版本对比不可见', async () => {

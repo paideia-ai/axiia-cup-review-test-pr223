@@ -3,9 +3,7 @@ import { Menu } from '@base-ui-components/react/menu'
 import {
   Archive,
   ArchiveRestore,
-  ArrowLeftRight,
   Check,
-  ChevronDown,
   Ellipsis,
   Pencil,
   Plus,
@@ -14,9 +12,7 @@ import {
 } from 'lucide-react'
 import {
   useEffect,
-  useId,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -24,11 +20,7 @@ import {
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { agents as agentAPI, builder } from '../api/client'
-import type {
-  AgentVersionDTO,
-  MyAgentDTO,
-  VersionDiffResponse,
-} from '../api/types'
+import type { AgentVersionDTO, MyAgentDTO } from '../api/types'
 import { Modal } from '../components/modal'
 import { CreateAgentAction } from '../components/create-agent-action'
 import { OsPanel } from '../components/os-panel'
@@ -36,9 +28,11 @@ import { BackLink } from '../components/back-link'
 import { Button, ButtonLink } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Input } from '../components/ui/input'
-import { VersionPicker } from '../components/version-picker'
-import { promptDiff } from '../lib/prompt-diff'
 import { VersionList } from '../components/version-list'
+import {
+  AgentMatchHistory,
+  PlayerProfileRecord,
+} from '../components/agent-profile'
 import {
   beginEntryMutation,
   finishEntryMutation,
@@ -51,11 +45,7 @@ import { purgeBuilderDraftJournals } from '../lib/builder-draft-storage'
 import { cn } from '../lib/cn'
 import { messageOf } from '../lib/use-async'
 import { usePageQuery } from '../lib/use-page-query'
-import {
-  agentQuery,
-  inventoryQuery,
-  modelsQuery,
-} from '../lib/navigation-queries'
+import { agentQuery, inventoryQuery } from '../lib/navigation-queries'
 import { versionTag } from '../lib/version-label'
 import { tm } from '../testmode/mark'
 import {
@@ -70,8 +60,7 @@ function displayName(sideName: string, agentID: number, name?: string | null) {
   return name ? `${sideName}「${name}」` : `${sideName} #${agentID}`
 }
 
-// EA 智能体主页：主人视图是身份、同侧智能体、版本与版本对比的操作中枢；
-// 别人的公开投影仍只展示身份与逐版本战绩，不泄露提示词或 diff。
+// EA 智能体主页突出最新保存版本；参赛标记与所选战绩版本彼此独立。
 export function AgentViewPage() {
   const { agentId = '' } = useParams()
   return <AgentView key={agentId} agentID={Number(agentId)} />
@@ -100,6 +89,9 @@ function AgentView({ agentID }: { agentID: number }) {
     ? currentView.publicView
     : null
 
+  const [selectedVersionID, setSelectedVersionID] = useState<number | null>(
+    null,
+  )
   const [osOpen, setOsOpen] = useState(false)
   const [preferVersionID, setPreferVersionID] = useState<number | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -393,13 +385,16 @@ function AgentView({ agentID }: { agentID: number }) {
     }
   }
 
-  // 公开视图：逐版本胜负有意公开；提示词、版本动作和 diff 永不公开。
+  // The public DTO contains no prompt; never read private version endpoints here.
   if (publicView) {
     const publicName = displayName(
       publicView.sideName,
       publicView.agentID,
       publicView.name,
     )
+    const current = [...publicView.versions].sort((a, b) => b.id - a.id)
+    const selected = current.find((v) => v.id === selectedVersionID) ??
+      current[0]
     return (
       <div className='space-y-6' {...tm('EA.public-view')}>
         <div>
@@ -412,7 +407,7 @@ function AgentView({ agentID }: { agentID: number }) {
         </div>
         <div>
           <h1
-            className='text-2xl font-black tracking-tight text-(--foreground)'
+            className='wrap-anywhere text-2xl font-black tracking-tight text-(--foreground)'
             {...tm('EA.public-title')}
           >
             {publicName}
@@ -424,6 +419,11 @@ function AgentView({ agentID }: { agentID: number }) {
             {publicView.ownerName} · {publicView.scenarioTitle}
           </p>
         </div>
+        <PlayerProfileRecord
+          versions={publicView.versions}
+          selectedID={selected?.id ?? null}
+          onSelect={setSelectedVersionID}
+        />
         <Card {...tm('EA.public-record-card')}>
           <CardContent className='space-y-3 pt-5'>
             <h2 className='text-sm font-semibold text-(--foreground)'>
@@ -464,7 +464,7 @@ function AgentView({ agentID }: { agentID: number }) {
                         {...tm('EA.public-record')}
                       >
                         {version.matchCount === 0
-                          ? '还没有出战过'
+                          ? '暂无战绩'
                           : `${version.matchCount} 战 ${version.winCount} 胜`}
                       </span>
                     </li>
@@ -475,10 +475,17 @@ function AgentView({ agentID }: { agentID: number }) {
               className='text-xs text-(--foreground-muted)'
               {...tm('EA.public-owner-only-hint')}
             >
-              提示词与版本对比只有主人可见。
+              提示词只有智能体主人可见。
             </p>
           </CardContent>
         </Card>
+        {selected && (
+          <AgentMatchHistory
+            key={selected.id}
+            target={{ kind: 'player', agentID, versionID: selected.id }}
+            side={publicView.side === 'a' ? 'a' : 'b'}
+          />
+        )}
       </div>
     )
   }
@@ -793,8 +800,15 @@ function AgentView({ agentID }: { agentID: number }) {
               />
             </nav>
 
+            <PlayerProfileRecord
+              versions={data.versions}
+              selectedID={selectedVersionID}
+              onSelect={setSelectedVersionID}
+            />
+
             <VersionList
               versions={data.versions}
+              selectedVersionID={selectedVersionID ?? sorted[0]?.id ?? null}
               sideName={sideName}
               entryBusy={entryMutation != null}
               pendingEntryID={entryMutation?.agentID === agentID
@@ -852,14 +866,6 @@ function AgentView({ agentID }: { agentID: number }) {
                   </p>
                 </div>
               }
-            />
-
-            <VersionCompare
-              key={`${agentID}-${
-                data.versions.map((version) => version.id).join('-')
-              }`}
-              agentID={agentID}
-              versions={data.versions}
             />
 
             {entryNotice != null
@@ -922,6 +928,20 @@ function AgentView({ agentID }: { agentID: number }) {
               )
               : null}
 
+            {sorted.length > 0 && (
+              <AgentMatchHistory
+                key={selectedVersionID ?? sorted[0].id}
+                target={{
+                  kind: 'player',
+                  agentID,
+                  versionID: sorted.find((v) =>
+                    v.id === selectedVersionID
+                  )?.id ?? sorted[0].id,
+                }}
+                side={data.draft.side}
+              />
+            )}
+
             <OsPanel
               open={osOpen}
               onClose={() => setOsOpen(false)}
@@ -934,237 +954,5 @@ function AgentView({ agentID }: { agentID: number }) {
           </>
         )}
     </div>
-  )
-}
-
-function VersionCompare({
-  agentID,
-  versions,
-}: {
-  agentID: number
-  versions: AgentVersionDTO[]
-}) {
-  const { data: modelList } = usePageQuery(modelsQuery())
-  const modelLabels = new Map(
-    modelList?.models?.map((model) => [model.id, model.label]),
-  )
-  const sorted = [...versions].sort((a, b) => b.id - a.id)
-  const [baseID, setBaseID] = useState(String(sorted[1]?.id ?? ''))
-  const [headID, setHeadID] = useState(String(sorted[0]?.id ?? ''))
-  const [open, setOpen] = useState(false)
-  const [diff, setDiff] = useState<VersionDiffResponse | null>(null)
-  const [diffBusy, setDiffBusy] = useState(false)
-  const [diffError, setDiffError] = useState<string | null>(null)
-  const panelID = useId()
-  const requestID = useRef(0)
-
-  useEffect(() => {
-    const sequence = ++requestID.current
-    if (!open || !baseID || !headID || baseID === headID) {
-      setDiffBusy(false)
-      return
-    }
-    setDiffBusy(true)
-    setDiffError(null)
-    setDiff(null)
-    void builder.diff(agentID, Number(baseID), Number(headID))
-      .then((result) => {
-        if (requestID.current === sequence) setDiff(result)
-      })
-      .catch((cause: unknown) => {
-        if (requestID.current === sequence) {
-          setDiffError(messageOf(cause, '对比失败'))
-          setDiff(null)
-        }
-      })
-      .finally(() => {
-        if (requestID.current === sequence) setDiffBusy(false)
-      })
-    return () => {
-      if (requestID.current === sequence) requestID.current += 1
-    }
-  }, [agentID, baseID, headID, open])
-
-  const changes = useMemo(
-    () => diff ? promptDiff(diff.base.prompt, diff.head.prompt) : [],
-    [diff],
-  )
-
-  if (sorted.length === 0) return null
-
-  if (sorted.length === 1) {
-    return (
-      <section
-        className='space-y-2 border-t border-(--border-soft) pt-4'
-        {...tm('EA.diff-section')}
-      >
-        <h2 className='text-sm font-medium text-(--foreground-subtle)'>
-          版本对比
-        </h2>
-        <p
-          className='text-xs text-(--foreground-muted)'
-          {...tm('EA.diff-hint')}
-        >
-          再保存一个版本即可对比两版策略。
-        </p>
-      </section>
-    )
-  }
-
-  return (
-    <section
-      aria-label='版本对比'
-      className='space-y-3 border-t border-(--border-soft) pt-4'
-      {...tm('EA.diff-section')}
-    >
-      <div className='flex flex-wrap items-center gap-2 sm:gap-3'>
-        <h2 className='shrink-0'>
-          <Button
-            type='button'
-            size='sm'
-            variant='ghost'
-            className='h-11 cursor-pointer gap-1.5 px-1 text-(--foreground-subtle) md:h-9'
-            aria-expanded={open}
-            aria-controls={panelID}
-            onClick={() => setOpen((current) => !current)}
-            {...tm('EA.diff-button')}
-          >
-            <ChevronDown
-              aria-hidden='true'
-              className={`h-3.5 w-3.5 transition-transform ${
-                open ? '' : '-rotate-90'
-              }`}
-            />
-            版本对比
-          </Button>
-        </h2>
-
-        <div {...tm('EA.diff-base-select')}>
-          <VersionPicker
-            label='选择基准版本'
-            value={baseID}
-            otherID={headID}
-            versions={sorted}
-            modelLabels={modelLabels}
-            onChange={(value) => {
-              setBaseID(value)
-              setOpen(true)
-            }}
-          />
-        </div>
-
-        <ArrowLeftRight
-          aria-hidden='true'
-          className='h-3.5 w-3.5 shrink-0 text-(--foreground-muted)'
-        />
-
-        <div {...tm('EA.diff-head-select')}>
-          <VersionPicker
-            label='选择对比版本'
-            value={headID}
-            otherID={baseID}
-            versions={sorted}
-            modelLabels={modelLabels}
-            onChange={(value) => {
-              setHeadID(value)
-              setOpen(true)
-            }}
-          />
-        </div>
-      </div>
-
-      <div id={panelID} hidden={!open}>
-        {open
-          ? (
-            <div className='space-y-3'>
-              {diffBusy
-                ? (
-                  <p
-                    role='status'
-                    className='text-xs text-(--foreground-muted)'
-                  >
-                    对比中…
-                  </p>
-                )
-                : null}
-              {diffError
-                ? (
-                  <p
-                    role='alert'
-                    className='text-sm text-(--accent)'
-                    {...tm('EA.diff-error')}
-                  >
-                    {diffError}
-                  </p>
-                )
-                : null}
-              {diff
-                ? (
-                  <div
-                    className='grid gap-3 md:grid-cols-2'
-                    {...tm('EA.diff-result')}
-                  >
-                    <p
-                      className='flex gap-4 text-xs md:col-span-2'
-                      role='status'
-                    >
-                      {diff.base.prompt === diff.head.prompt
-                        ? '两版策略正文相同。'
-                        : (
-                          <>
-                            <span className='text-red-300'>− 删去</span>
-                            <span className='text-emerald-300'>＋ 新增</span>
-                          </>
-                        )}
-                    </p>
-                    {([
-                      ['基准', diff.base],
-                      ['对比', diff.head],
-                    ] as const).map(([label, version], index) => (
-                      <div
-                        key={label}
-                        className='min-w-0 space-y-1.5'
-                        {...tm('EA.diff-column')}
-                      >
-                        <p
-                          className='text-xs text-(--foreground-subtle)'
-                          {...tm('EA.diff-column-title')}
-                        >
-                          <span className='font-semibold'>
-                            {versionTag(version, sorted)}
-                          </span>
-                          {version.note?.trim() && (
-                            <span className='ml-2 break-words'>
-                              {version.note.trim()}
-                            </span>
-                          )}
-                          {version.modelID && (
-                            <span className='ml-2 text-(--foreground-muted)'>
-                              {modelLabels.get(version.modelID) ??
-                                version.modelID}
-                            </span>
-                          )}
-                        </p>
-                        <pre
-                          aria-label={`${versionTag(version, sorted)} 策略正文`}
-                          className='max-h-96 overflow-auto whitespace-pre-wrap wrap-anywhere rounded-md border border-(--border-soft) bg-white/2 p-3 font-sans text-sm leading-7 text-(--foreground-subtle)'
-                          {...tm('EA.diff-prompt')}
-                        >
-                          {changes.filter((change) => change.kind !== (index === 0 ? 'added' : 'removed')).map((change, part) =>
-                            change.kind === 'same' ? change.text : change.kind === 'removed'
-                              ? <del key={part} className='rounded-sm bg-red-400/15 text-red-200 decoration-red-300/60'>{change.text}</del>
-                              : <ins key={part} className='rounded-sm bg-emerald-400/15 text-emerald-200 underline decoration-emerald-300/60 underline-offset-4'>{change.text}</ins>
-                          )}
-                        </pre>
-                      </div>
-                    ))}
-                  </div>
-                )
-                : null}
-            </div>
-          )
-          : null}
-      </div>
-    </section>
   )
 }

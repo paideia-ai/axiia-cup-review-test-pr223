@@ -38,10 +38,10 @@ export function nextVersionCopy(versionCount: number): string {
   return `保存后将成为 v${versionCount + 1}`
 }
 
-// P15：逐版本战绩。没打过就直说「还没有出战过」——空白会被读成「0 胜」。
+// 逐版本战绩：没有有效完赛时与智能体主页统一显示「暂无战绩」。
 export function recordCopy(version: AgentVersionDTO): string {
   const played = version.matchCount ?? 0
-  if (played === 0) return '还没有出战过'
+  if (played === 0) return '暂无战绩'
   return `${played} 战 ${version.winCount ?? 0} 胜`
 }
 
